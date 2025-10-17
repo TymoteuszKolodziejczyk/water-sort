@@ -57,7 +57,7 @@ const levels = [
 ];
 
 function Game() {
-  const { currentLevel, setCurrentLevel, setPoints, resetTrigger } = useGameContext();
+  const { currentLevel, setCurrentLevel, resetTrigger } = useGameContext();
   const [vials, setVials] = useState([]);
 
   useEffect(() => {
@@ -101,26 +101,20 @@ function Game() {
     }
 
     if (sourceIndex === -1) return;
-
     const targetVial = newVials[targetIndex];
     const targetTopColor = getTopColor(targetVial);
     const emptyIndex = targetVial.indexOf('');
 
-    if (emptyIndex !== -1 && (targetTopColor === '' || targetTopColor === color)) {
+    if (emptyIndex !== -1 && (targetTopColor === '' || targetTopColor === color))
       targetVial[emptyIndex] = color;
-    } else {
+    else
       newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color;
-    }
-
     setVials(newVials);
 
     if (isLevelComplete(newVials)) {
       setTimeout(() => {
-        if (currentLevel < levels.length) {
+        if (currentLevel < levels.length)
           setCurrentLevel(prev => prev + 1);
-        } else {
-          alert('🏆 Congratulations! You completed all levels!');
-        }
       }, 500);
     }
   };
@@ -136,19 +130,9 @@ function Game() {
   return (
     <div className="game-container">
       {vials.map((vial, index) => (
-        <div
-          key={index}
-          className="vial"
-          onDrop={(e) => handleDrop(e, index)}
-          onDragOver={allowDrop}
-        >
+        <div key={index} className="vial" onDrop={(e) => handleDrop(e, index)} onDragOver={allowDrop}>
           {[...vial].map((color, colorIndex) => (
-            <div
-              key={colorIndex}
-              className={`color-box ${color}`}
-              draggable={color !== '' && colorIndex === getTopColorIndex(vial)}
-              onDragStart={(e) => handleDragStart(e, color)}
-            ></div>
+            <div key={colorIndex} className={`color-box ${color}`} draggable={color !== '' && colorIndex === getTopColorIndex(vial)} onDragStart={(e) => handleDragStart(e, color)}></div>
           )).reverse()}
         </div>
       ))}
