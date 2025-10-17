@@ -9,15 +9,22 @@ export const useGameContext = () => useContext(GameContext);
 function App() {
   const [points, setPoints] = useState(0);
   const [currentLevel, setCurrentLevel] = useState(1);
+  const [resetTrigger, setResetTrigger] = useState(false);
 
-  const handleReset = () => {
-    setPoints(0);
-    setCurrentLevel(1); // Reset to level 1
+  const resetLevel = () => {
+    setResetTrigger(prev => !prev); // wymusza reset poziomu
   };
 
   return (
-    <GameContext.Provider value={{ points, setPoints, currentLevel, setCurrentLevel }}>
-      <Menu onReset={handleReset} />
+    <GameContext.Provider value={{
+      points,
+      setPoints,
+      currentLevel,
+      setCurrentLevel,
+      resetLevel,
+      resetTrigger
+    }}>
+      <Menu />
       <Game />
     </GameContext.Provider>
   );

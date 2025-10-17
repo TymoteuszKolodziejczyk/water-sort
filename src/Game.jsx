@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import { useGameContext } from './App';
 
@@ -57,15 +57,15 @@ const levels = [
 ];
 
 function Game() {
-  const { currentLevel, setCurrentLevel, setPoints } = useGameContext();
+  const { currentLevel, setCurrentLevel, setPoints, resetTrigger } = useGameContext();
   const [vials, setVials] = useState([]);
 
   useEffect(() => {
     resetLevel();
-  }, [currentLevel]);
+  }, [currentLevel, resetTrigger]);
 
   const resetLevel = () => {
-    const copiedVials = levels[currentLevel - 1].vialColors.map((vial) => [...vial]); // Adjust for zero-based index
+    const copiedVials = levels[currentLevel - 1].vialColors.map(vial => [...vial]);
     setVials(copiedVials);
   };
 
@@ -79,16 +79,16 @@ function Game() {
 
   const isLevelComplete = (vials) => {
     return vials.every((vial) => {
-      if (vial.every((c) => c === '')) return true; // Empty vial
+      if (vial.every((c) => c === '')) return true;
       const firstColor = vial[0];
-      return firstColor !== '' && vial.every((c) => c === firstColor); // Full and single color
+      return firstColor !== '' && vial.every((c) => c === firstColor);
     });
   };
 
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
     const color = e.dataTransfer.getData('color');
-    const newVials = vials.map((vial) => [...vial]);
+    const newVials = vials.map(vial => [...vial]);
 
     let sourceIndex = -1;
     for (let i = 0; i < newVials.length; i++) {
@@ -102,15 +102,14 @@ function Game() {
 
     if (sourceIndex === -1) return;
 
-   
     const targetVial = newVials[targetIndex];
     const targetTopColor = getTopColor(targetVial);
     const emptyIndex = targetVial.indexOf('');
 
     if (emptyIndex !== -1 && (targetTopColor === '' || targetTopColor === color)) {
-      targetVial[emptyIndex] = color; // Place color in the empty slot
+      targetVial[emptyIndex] = color;
     } else {
-      newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color; // Invalid drop
+      newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color;
     }
 
     setVials(newVials);
@@ -118,7 +117,7 @@ function Game() {
     if (isLevelComplete(newVials)) {
       setTimeout(() => {
         if (currentLevel < levels.length) {
-          setCurrentLevel((prev) => prev + 1); // Move to the next level
+          setCurrentLevel(prev => prev + 1);
         } else {
           alert('🏆 Congratulations! You completed all levels!');
         }

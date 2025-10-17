@@ -2,8 +2,8 @@ import React from 'react';
 import './App.css';
 import { useGameContext } from './App';
 
-function Menu({ onReset }) {
-  const { points, currentLevel } = useGameContext();
+function Menu() {
+  const { points, currentLevel, setCurrentLevel, resetLevel } = useGameContext();
 
   return (
     <>
@@ -17,7 +17,7 @@ function Menu({ onReset }) {
               key={level}
               className={`button ${currentLevel === level ? 'active' : ''}`}
               onClick={() => {
-                if(currentLevel !== level) {
+                if (currentLevel !== level) {
                   setCurrentLevel(level);
                 }
               }}
@@ -26,7 +26,9 @@ function Menu({ onReset }) {
             </p>
           ))}
         </div>
-        <button className="button reset-button" onClick={onReset}>🔄 Reset</button>
+        <button className="button reset-button" onClick={resetLevel}>
+          🔄 Reset poziomu
+        </button>
       </div>
     </>
   );
