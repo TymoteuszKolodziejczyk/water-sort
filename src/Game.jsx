@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './App.css';
+import { useGameContext } from './App';
 
 const levels = [
   {
@@ -56,7 +57,7 @@ const levels = [
 ];
 
 function Game() {
-  const [currentLevel, setCurrentLevel] = useState(0);
+  const { currentLevel, setCurrentLevel, setPoints } = useGameContext();
   const [vials, setVials] = useState([]);
 
   useEffect(() => {
@@ -64,8 +65,7 @@ function Game() {
   }, [currentLevel]);
 
   const resetLevel = () => {
-    // Deep copy to avoid mutating original level data
-    const copiedVials = levels[currentLevel].vialColors.map((vial) => [...vial]);
+    const copiedVials = levels[currentLevel - 1].vialColors.map((vial) => [...vial]); // Adjust for zero-based index
     setVials(copiedVials);
   };
 
@@ -77,16 +77,13 @@ function Game() {
     return index !== -1 ? vial[index] : '';
   };
 
-const isLevelComplete = (vials) => {
-  return vials.every((vial) => {
-    // Fiolka jest pusta
-    if (vial.every((c) => c === '')) return true;
-
-    // Fiolka jest pełna i jednokolorowa
-    const firstColor = vial[0];
-    return firstColor !== '' && vial.every((c) => c === firstColor);
-  });
-};
+  const isLevelComplete = (vials) => {
+    return vials.every((vial) => {
+      if (vial.every((c) => c === '')) return true; // Empty vial
+      const firstColor = vial[0];
+      return firstColor !== '' && vial.every((c) => c === firstColor); // Full and single color
+    });
+  };
 
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
@@ -105,24 +102,25 @@ const isLevelComplete = (vials) => {
 
     if (sourceIndex === -1) return;
 
+   
     const targetVial = newVials[targetIndex];
     const targetTopColor = getTopColor(targetVial);
     const emptyIndex = targetVial.indexOf('');
 
     if (emptyIndex !== -1 && (targetTopColor === '' || targetTopColor === color)) {
-      targetVial[emptyIndex] = color;
+      targetVial[emptyIndex] = color; // Place color in the empty slot
     } else {
-      newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color;
+      newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color; // Invalid drop
     }
 
     setVials(newVials);
 
     if (isLevelComplete(newVials)) {
       setTimeout(() => {
-        if (currentLevel < levels.length - 1) {
-          setCurrentLevel((prev) => prev + 1);
+        if (currentLevel < levels.length) {
+          setCurrentLevel((prev) => prev + 1); // Move to the next level
         } else {
-          alert('🏆 Gratulacje! Ukończyłeś wszystkie poziomy!');
+          alert('🏆 Congratulations! You completed all levels!');
         }
       }, 500);
     }
