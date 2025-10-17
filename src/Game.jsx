@@ -1,20 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 const levels = [
   {
     level: 1,
-    vials: 3,
     vialColors: [
-      ['red', 'green', 'red', 'green'],
-      ['green', 'red', 'green', 'red'],
-      ['', '', '', ''],
+      ["red", "green", "red", "green"],
+      ["green", "red", "green", "red"],
+      ["", "", "", ""],
+    ],
+  },
+  {
+    level: 2,
+    vialColors: [
+      ["green", "yellow", "", ""],
+      ["yellow", "green", "", ""],
+      ["green", "green", "", ""],
+      ["yellow", "yellow", "", ""],
+    ],
+  },
+  {
+    level: 3,
+    vialColors: [
+      ["green", "purple", "", ""],
+      ["blue", "blue", "green", ""],
+      ["purple", "blue", "green", ""],
+      ["green", "blue", "", ""],
+      ["purple", "purple", "", ""],
+    ],
+  },
+  {
+    level: 4,
+    vialColors: [
+      ["green", "green", "red", "blue"],
+      ["pink", "purple", "red", "blue"],
+      ["purple", "red", "pink", "red"],
+      ["pink", "green", "blue", "purple"],
+      ["green", "pink", "blue", "purple"],
+      ["", "", "", ""],
+      ["", "", "", ""],
+    ],
+  },
+  {
+    level: 5,
+    vialColors: [
+      ["purple", "purple", "purple", "cyan"],
+      ["purple", "green", "yellow", "green"],
+      ["green", "yellow", "cyan", "yellow"],
+      ["yellow", "cyan", "green", "pink"],
+      ["cyan", "pink", "pink", "pink"],
+      ["", "", "", ""],
+      ["", "", "", ""],
     ],
   },
 ];
 
 function Game() {
-  const [vials, setVials] = useState(levels[0].vialColors);
+  const [currentLevel, setCurrentLevel] = useState(0);
+  const [vials, setVials] = useState([]);
+
+  useEffect(() => {
+    resetLevel();
+  }, [currentLevel]);
+
+  const resetLevel = () => {
+    // Deep copy to avoid mutating original level data
+    const copiedVials = levels[currentLevel].vialColors.map((vial) => [...vial]);
+    setVials(copiedVials);
+  };
 
   const getTopColorIndex = (vial) =>
     vial.reduce((topIndex, c, i) => (c !== '' ? i : topIndex), -1);
@@ -24,16 +77,26 @@ function Game() {
     return index !== -1 ? vial[index] : '';
   };
 
+const isLevelComplete = (vials) => {
+  return vials.every((vial) => {
+    // Fiolka jest pusta
+    if (vial.every((c) => c === '')) return true;
+
+    // Fiolka jest pełna i jednokolorowa
+    const firstColor = vial[0];
+    return firstColor !== '' && vial.every((c) => c === firstColor);
+  });
+};
+
   const handleDrop = (e, targetIndex) => {
     e.preventDefault();
     const color = e.dataTransfer.getData('color');
     const newVials = vials.map((vial) => [...vial]);
 
-    // Find source vial and remove top color
     let sourceIndex = -1;
     for (let i = 0; i < newVials.length; i++) {
       const topIndex = getTopColorIndex(newVials[i]);
-      if (topIndex !== -1 && newVials[i][topIndex] === color) {
+      if (topIndex !== -1 && newVials[i][topIndex] === color && i !== targetIndex) {
         sourceIndex = i;
         newVials[i][topIndex] = '';
         break;
@@ -46,16 +109,23 @@ function Game() {
     const targetTopColor = getTopColor(targetVial);
     const emptyIndex = targetVial.indexOf('');
 
-    // Drop only if target is empty or matches top color
     if (emptyIndex !== -1 && (targetTopColor === '' || targetTopColor === color)) {
       targetVial[emptyIndex] = color;
     } else {
-      // Restore color to source if drop fails
-      const restoreIndex = getTopColorIndex(newVials[sourceIndex]) + 1;
-      newVials[sourceIndex][restoreIndex] = color;
+      newVials[sourceIndex][getTopColorIndex(newVials[sourceIndex]) + 1] = color;
     }
 
     setVials(newVials);
+
+    if (isLevelComplete(newVials)) {
+      setTimeout(() => {
+        if (currentLevel < levels.length - 1) {
+          setCurrentLevel((prev) => prev + 1);
+        } else {
+          alert('🏆 Gratulacje! Ukończyłeś wszystkie poziomy!');
+        }
+      }, 500);
+    }
   };
 
   const handleDragStart = (e, color) => {
@@ -79,14 +149,9 @@ function Game() {
             <div
               key={colorIndex}
               className={`color-box ${color}`}
-              draggable={
-                color !== '' &&
-                colorIndex === getTopColorIndex(vial)
-              }
+              draggable={color !== '' && colorIndex === getTopColorIndex(vial)}
               onDragStart={(e) => handleDragStart(e, color)}
-            >
-              {color}
-            </div>
+            ></div>
           )).reverse()}
         </div>
       ))}
